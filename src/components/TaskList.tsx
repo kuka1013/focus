@@ -65,12 +65,14 @@ export function TaskList({ tasks, onUpdateStatus, onDelete }: TaskListProps) {
                   <div className="flex-1 flex flex-col">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                       <div className="space-y-1">
-                        <span className={cn(
-                          "text-[10px] font-mono uppercase px-2 py-0.5 rounded inline-block",
-                          TYPE_COLORS[task.type] || "bg-zinc-800 text-zinc-300"
-                        )}>
-                          {task.type}
-                        </span>
+                        {task.type && (
+                          <span className={cn(
+                            "text-[10px] font-mono uppercase px-2 py-0.5 rounded inline-block",
+                            TYPE_COLORS[task.type] || "bg-zinc-800 text-zinc-300"
+                          )}>
+                            {task.type}
+                          </span>
+                        )}
                         <h4 className={cn(
                           "text-sm font-semibold mt-1",
                           task.status === 'closed' ? "text-zinc-500 line-through" : "text-zinc-100"

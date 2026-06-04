@@ -160,7 +160,6 @@ export function TaskForm({ onAdd, subjectsList, onSaveSubject, tasks }: TaskForm
                     onFocus={() => setShowTypeDropdown(true)}
                     className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-600 transition-colors pr-8"
                     placeholder="ЛР, КР..."
-                    required
                   />
                   <ChevronDown 
                     className={cn("w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 transition-transform cursor-pointer hover:text-zinc-300", showTypeDropdown && "rotate-180")}
@@ -193,7 +192,7 @@ export function TaskForm({ onAdd, subjectsList, onSaveSubject, tasks }: TaskForm
 
               {/* Topic */}
               <div className="space-y-1 sm:col-span-2 border-t border-zinc-900 pt-4 mt-2 sm:border-none sm:pt-0 sm:mt-0">
-                <label className="text-xs font-mono text-zinc-500 uppercase tracking-wider">Тема / Описание (опц.)</label>
+                <label className="text-xs font-mono text-zinc-500 uppercase tracking-wider">Тема / Описание</label>
                 <input
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
@@ -267,7 +266,7 @@ export function TaskForm({ onAdd, subjectsList, onSaveSubject, tasks }: TaskForm
 
               {/* Link */}
               <div className="space-y-1">
-                <label className="text-xs font-mono text-zinc-500 uppercase tracking-wider">Ссылка (опц.)</label>
+                <label className="text-xs font-mono text-zinc-500 uppercase tracking-wider">Ссылка</label>
                 <input
                   type="url"
                   value={link}

@@ -97,14 +97,14 @@ export function TaskList({ tasks, onUpdateStatus, onDelete }: TaskListProps) {
                       </div>
                     </div>
 
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex bg-zinc-900 rounded p-0.5 border border-zinc-800">
+                    <div className="mt-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
+                      <div className="flex bg-zinc-900 rounded p-0.5 border border-zinc-800 w-full sm:w-auto overflow-x-auto hide-scrollbar">
                         {(['not_started', 'in_progress', 'ready', 'closed'] as TaskStatus[]).map(s => (
                           <button
                             key={s}
                             onClick={() => onUpdateStatus(task.id, s)}
                             className={cn(
-                              "px-3 py-1 text-[10px] uppercase font-mono transition-colors",
+                              "px-3 py-1.5 sm:py-1 text-[10px] uppercase font-mono transition-colors whitespace-nowrap",
                               task.status === s
                                 ? "bg-zinc-800 text-zinc-100 rounded-sm"
                                 : "text-zinc-500 hover:text-zinc-300 rounded-sm"

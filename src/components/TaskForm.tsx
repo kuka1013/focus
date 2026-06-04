@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, Plus, Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn, PREDEFINED_SUBJECTS } from '../lib/utils';
@@ -15,7 +16,7 @@ interface TaskFormProps {
 export function TaskForm({ onAdd, subjectsList, onSaveSubject, tasks }: TaskFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [subject, setSubject] = useState('');
-  const [type, setType] = useState<TaskType>('ЛР');
+  const [type, setType] = useState<TaskType>('');
   const [topic, setTopic] = useState('');
   const [hasDeadline, setHasDeadline] = useState(true);
   const [deadline, setDeadline] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -71,7 +72,7 @@ export function TaskForm({ onAdd, subjectsList, onSaveSubject, tasks }: TaskForm
 
     // Reset form
     setSubject('');
-    setType('ЛР');
+    setType('');
     setTopic('');
     setHasDeadline(true);
     setDeadline(format(new Date(), 'yyyy-MM-dd'));
@@ -230,7 +231,7 @@ export function TaskForm({ onAdd, subjectsList, onSaveSubject, tasks }: TaskForm
                       <span>{deadline ? format(new Date(deadline), 'dd MMMM yyyy') : 'Выберите дату...'}</span>
                       <CalendarIcon className="w-4 h-4 text-zinc-600" />
                     </button>
-                    {showDatePicker && (
+                    {showDatePicker && typeof document !== 'undefined' && createPortal(
                       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={(e) => {
                         if (e.target === e.currentTarget) setShowDatePicker(false);
                       }}>
@@ -253,7 +254,8 @@ export function TaskForm({ onAdd, subjectsList, onSaveSubject, tasks }: TaskForm
                             />
                           </div>
                         </div>
-                      </div>
+                      </div>,
+                      document.body
                     )}
                   </div>
                 ) : (

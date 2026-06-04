@@ -50,9 +50,6 @@ export function TaskForm({ onAdd, subjectsList, onSaveSubject, tasks }: TaskForm
       if (typeDropdownRef.current && !typeDropdownRef.current.contains(e.target as Node)) {
         setShowTypeDropdown(false);
       }
-      if (datePickerRef.current && !datePickerRef.current.contains(e.target as Node)) {
-        setShowDatePicker(false);
-      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);

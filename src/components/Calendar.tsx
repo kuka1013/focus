@@ -46,6 +46,7 @@ export function Calendar({ tasks = [], selectedDate, onSelectDate, minimal = fal
     <div className={cn("flex flex-col border border-zinc-700 rounded bg-zinc-800/80 p-4 relative", !minimal && "h-full")}>
       <div className="flex items-center justify-between mb-4">
         <button 
+          type="button"
           onClick={() => setCurrentDate(subMonths(currentDate, 1))}
           className="text-zinc-500 hover:text-zinc-100 transition-colors"
         >
@@ -55,6 +56,7 @@ export function Calendar({ tasks = [], selectedDate, onSelectDate, minimal = fal
           {format(currentDate, 'LLLL yyyy').replace(/^\w/, c => c.toUpperCase())}
         </h2>
         <button 
+          type="button"
           onClick={() => setCurrentDate(addMonths(currentDate, 1))}
           className="text-zinc-500 hover:text-zinc-100 transition-colors"
         >
@@ -82,6 +84,7 @@ export function Calendar({ tasks = [], selectedDate, onSelectDate, minimal = fal
 
           return (
             <button
+              type="button"
               key={i}
               onClick={() => handleDayClick(dayStr)}
               className={cn(
@@ -115,6 +118,7 @@ export function Calendar({ tasks = [], selectedDate, onSelectDate, minimal = fal
       {!minimal && (
         <div className="mt-4 border-t border-transparent pt-2">
           <button
+            type="button"
             onClick={() => onSelectDate(null)}
             disabled={!selectedDate}
             className="w-full mt-1 py-1 flex items-center justify-center text-[10px] uppercase tracking-tighter text-zinc-400 border border-dashed border-zinc-600 hover:border-zinc-400 hover:text-zinc-200 transition-all disabled:opacity-30 disabled:hover:border-zinc-600 disabled:hover:text-zinc-400"

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, RotateCcw, Brain, Coffee } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useLocalStorage } from '../hooks/useLocalStorage';

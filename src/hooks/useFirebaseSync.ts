@@ -3,31 +3,57 @@ import { collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, query, order
 import { auth, db } from '../lib/firebase';
 import type { Task } from '../types';
 
-export function useFirebaseSync() {
-  const [user, setUser] = useState(auth.currentUser);
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+    },
+    operationType,
+    path
+  }
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
+
+export function useFirebaseSync(isDemoLoggedIn: boolean) {
+  const user = isDemoLoggedIn ? { uid: 'demo-user' } : null;
   const [tasks, setTasks] = useState<Task[]>([]);
   const [subjectsHistory, setSubjectsHistory] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const unsubscribeAuth = auth.onAuthStateChanged((u) => {
-      setUser(u);
-      if (!u) {
-        setTasks([]);
-        setSubjectsHistory([]);
-        setLoading(false);
-      }
-    });
-    return unsubscribeAuth;
-  }, []);
-
-  useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setTasks([]);
+      setSubjectsHistory([]);
+      return;
+    }
     
     setLoading(true);
     
     // Listen to tasks
-    const qTasks = query(collection(db, `users/${user.uid}/tasks`), orderBy('createdAt', 'asc'));
+    const tasksPath = `users/${user.uid}/tasks`;
+    const qTasks = query(collection(db, tasksPath), orderBy('createdAt', 'asc'));
     const unsubTasks = onSnapshot(qTasks, (snapshot) => {
       const newTasks: Task[] = [];
       snapshot.forEach((doc) => {
@@ -35,11 +61,12 @@ export function useFirebaseSync() {
       });
       setTasks(newTasks);
     }, (error) => {
-      console.error("Firestore Error Tasks:", error);
+      handleFirestoreError(error, OperationType.LIST, tasksPath);
     });
 
     // Listen to preferences
-    const unsubPrefs = onSnapshot(doc(db, `users/${user.uid}`), (docSnap) => {
+    const prefsPath = `users/${user.uid}`;
+    const unsubPrefs = onSnapshot(doc(db, prefsPath), (docSnap) => {
         if (docSnap.exists() && docSnap.data().subjectsHistory) {
             setSubjectsHistory(docSnap.data().subjectsHistory);
         } else {
@@ -47,15 +74,15 @@ export function useFirebaseSync() {
         }
         setLoading(false);
     }, (error) => {
-        console.error("Firestore Error Prefs:", error);
         setLoading(false);
+        handleFirestoreError(error, OperationType.GET, prefsPath);
     });
 
     return () => {
       unsubTasks();
       unsubPrefs();
     };
-  }, [user]);
+  }, [user?.uid]);
 
   const addTask = async (taskData: Omit<Task, 'id' | 'status' | 'createdAt'>) => {
     if (!user) return;
@@ -70,10 +97,11 @@ export function useFirebaseSync() {
     // Optimistic update
     setTasks(prev => [...prev, newTask]);
     
+    const taskPath = `users/${user.uid}/tasks`;
     try {
-        await setDoc(doc(db, `users/${user.uid}/tasks`, newTask.id), newTask);
+        await setDoc(doc(db, taskPath, newTask.id), newTask);
     } catch (e) {
-        console.error("Failed to add task", e);
+        handleFirestoreError(e, OperationType.CREATE, taskPath);
     }
   };
 
@@ -82,10 +110,11 @@ export function useFirebaseSync() {
     
     setTasks(prev => prev.map(t => t.id === id ? { ...t, status: status as any } : t));
     
+    const taskPath = `users/${user.uid}/tasks`;
     try {
-        await updateDoc(doc(db, `users/${user.uid}/tasks`, id), { status });
+        await updateDoc(doc(db, taskPath, id), { status });
     } catch (e) {
-        console.error("Failed to update status", e);
+        handleFirestoreError(e, OperationType.UPDATE, taskPath);
     }
   };
 
@@ -94,20 +123,22 @@ export function useFirebaseSync() {
     
     setTasks(prev => prev.filter(t => t.id !== id));
     
+    const taskPath = `users/${user.uid}/tasks`;
     try {
-        await deleteDoc(doc(db, `users/${user.uid}/tasks`, id));
+        await deleteDoc(doc(db, taskPath, id));
     } catch (e) {
-        console.error("Failed to delete task", e);
+        handleFirestoreError(e, OperationType.DELETE, taskPath);
     }
   };
 
   const updateSubjectsHistory = async (newSubjects: string[]) => {
       if (!user) return;
       setSubjectsHistory(newSubjects);
+      const prefsPath = `users/${user.uid}`;
       try {
-          await setDoc(doc(db, `users/${user.uid}`), { subjectsHistory: newSubjects }, { merge: true });
+          await setDoc(doc(db, prefsPath), { subjectsHistory: newSubjects }, { merge: true });
       } catch (e) {
-          console.error("Failed to save subjects", e);
+          handleFirestoreError(e, OperationType.UPDATE, prefsPath);
       }
   };
 

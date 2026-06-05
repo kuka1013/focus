@@ -9,6 +9,7 @@ export interface Task {
   deadline?: string; // YYYY-MM-DD
   link?: string;
   status: TaskStatus;
+  progress?: number;
   createdAt: number;
   userId?: string;
 }

@@ -6,10 +6,11 @@ import type { Task, TaskStatus } from '../types';
 interface TaskListProps {
   tasks: Task[];
   onUpdateStatus: (id: string, status: TaskStatus) => void;
+  onUpdateProgress: (id: string, progress: number) => void;
   onDelete: (id: string) => void;
 }
 
-export function TaskList({ tasks, onUpdateStatus, onDelete }: TaskListProps) {
+export function TaskList({ tasks, onUpdateStatus, onUpdateProgress, onDelete }: TaskListProps) {
   // Group tasks by deadline
   const groupedTasks = tasks.reduce((acc, task) => {
     if (!acc[task.deadline]) {
@@ -99,30 +100,50 @@ export function TaskList({ tasks, onUpdateStatus, onDelete }: TaskListProps) {
                       </div>
                     </div>
 
-                    <div className="mt-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
-                      <div className="flex bg-zinc-900 rounded p-0.5 border border-zinc-800 w-full sm:w-auto overflow-x-auto hide-scrollbar">
-                        {(['not_started', 'in_progress', 'ready', 'closed'] as TaskStatus[]).map(s => (
-                          <button
-                            key={s}
-                            onClick={() => onUpdateStatus(task.id, s)}
-                            className={cn(
-                              "px-3 py-1.5 sm:py-1 text-[10px] uppercase font-mono transition-colors whitespace-nowrap",
-                              task.status === s
-                                ? "bg-zinc-800 text-zinc-100 rounded-sm"
-                                : "text-zinc-500 hover:text-zinc-300 rounded-sm"
-                            )}
-                          >
-                            {STATUS_LABELS[s]}
-                          </button>
-                        ))}
+                    <div className="mt-4 flex flex-col gap-3">
+                      <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
+                        <div className="flex bg-zinc-900 rounded p-0.5 border border-zinc-800 w-full sm:w-auto overflow-x-auto hide-scrollbar">
+                          {(['not_started', 'in_progress', 'ready', 'closed'] as TaskStatus[]).map(s => (
+                            <button
+                              key={s}
+                              onClick={() => onUpdateStatus(task.id, s)}
+                              className={cn(
+                                "px-3 py-1.5 sm:py-1 text-[10px] uppercase font-mono transition-colors whitespace-nowrap",
+                                task.status === s
+                                  ? "bg-zinc-800 text-zinc-100 rounded-sm"
+                                  : "text-zinc-500 hover:text-zinc-300 rounded-sm"
+                              )}
+                            >
+                              {STATUS_LABELS[s]}
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          onClick={() => onDelete(task.id)}
+                          className="text-red-400 font-mono text-[10px] uppercase hover:text-red-300 hover:bg-red-400/10 px-2 py-1 rounded transition-colors"
+                          title="Удалить задачу"
+                        >
+                          Delete
+                        </button>
                       </div>
-                      <button
-                        onClick={() => onDelete(task.id)}
-                        className="text-red-400 font-mono text-[10px] uppercase hover:text-red-300 hover:bg-red-400/10 px-2 py-1 rounded transition-colors"
-                        title="Удалить задачу"
-                      >
-                        Delete
-                      </button>
+                      
+                      {task.status === 'in_progress' && (
+                        <div className="flex flex-col gap-1 w-full pt-2">
+                          <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 uppercase">
+                            <span>Прогресс</span>
+                            <span className="text-zinc-300">{task.progress || 0}%</span>
+                          </div>
+                          <input 
+                            type="range" 
+                            min="0" 
+                            max="100" 
+                            step="5" 
+                            value={task.progress || 0}
+                            onChange={(e) => onUpdateProgress(task.id, Number(e.target.value))}
+                            className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400 transition-all focus:outline-none"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -126,6 +126,19 @@ export function useFirebaseSync(isDemoLoggedIn: boolean) {
     }
   };
 
+  const updateTaskProgress = async (id: string, progress: number) => {
+    if (!user) return;
+    
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, progress } : t));
+    
+    const taskPath = `users/${user.uid}/tasks`;
+    try {
+        await updateDoc(doc(db, taskPath, id), { progress });
+    } catch (e) {
+        handleFirestoreError(e, OperationType.UPDATE, taskPath);
+    }
+  };
+
   const deleteTask = async (id: string) => {
     if (!user) return;
     
@@ -161,5 +174,5 @@ export function useFirebaseSync(isDemoLoggedIn: boolean) {
       }
   };
 
-  return { user, loading, tasks, subjectsHistory, timerSettings, addTask, updateTaskStatus, deleteTask, updateSubjectsHistory, updateTimerSettings };
+  return { user, loading, tasks, subjectsHistory, timerSettings, addTask, updateTaskStatus, updateTaskProgress, deleteTask, updateSubjectsHistory, updateTimerSettings };
 }

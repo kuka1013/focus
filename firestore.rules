@@ -33,6 +33,7 @@ service cloud.firestore {
              (!('topic' in data) || (data.topic is string && data.topic.size() <= 500)) &&
              (!('deadline' in data) || (data.deadline is string && data.deadline.size() <= 20)) &&
              (!('link' in data) || (data.link is string && data.link.size() <= 1000)) &&
+             (!('progress' in data) || (data.progress is number && data.progress >= 0 && data.progress <= 100)) &&
              data.status in ['not_started', 'in_progress', 'ready', 'closed'] &&
              data.createdAt is number;
     }

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Search, CalendarDays, ListTodo, Clock, LogOut } from 'lucide-react';
 import { Calendar } from './components/Calendar';
 import { TaskList } from './components/TaskList';
@@ -16,7 +16,7 @@ import { cn } from './lib/utils';
 
 export default function App() {
   const [isDemoLoggedIn, setIsDemoLoggedIn] = useLocalStorage('demo_logged_in', false);
-  const { user, loading, tasks, subjectsHistory, timerSettings, addTask, updateTaskStatus, deleteTask, updateSubjectsHistory, updateTimerSettings } = useFirebaseSync(isDemoLoggedIn);
+  const { user, loading, tasks, subjectsHistory, timerSettings, addTask, updateTaskStatus, updateTaskProgress, deleteTask, updateSubjectsHistory, updateTimerSettings } = useFirebaseSync(isDemoLoggedIn);
   
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
@@ -249,6 +249,7 @@ export default function App() {
             <TaskList 
               tasks={mainListTasks} 
               onUpdateStatus={handleUpdateStatus} 
+              onUpdateProgress={updateTaskProgress}
               onDelete={handleDelete} 
             />
           </div>

@@ -38,7 +38,9 @@ service cloud.firestore {
     }
     
     function isValidPrefs(data) {
-      return (!('subjectsHistory' in data) || (data.subjectsHistory is list && data.subjectsHistory.size() <= 50));
+      return (!('subjectsHistory' in data) || (data.subjectsHistory is list && data.subjectsHistory.size() <= 50)) &&
+             (!('studySecs' in data) || (data.studySecs is number && data.studySecs >= 0 && data.studySecs <= 86400)) &&
+             (!('restSecs' in data) || (data.restSecs is number && data.restSecs >= 0 && data.restSecs <= 86400));
     }
     
     match /users/{userId} {

@@ -40,6 +40,7 @@ export function useFirebaseSync(isDemoLoggedIn: boolean) {
   const user = isDemoLoggedIn ? { uid: 'demo-user' } : null;
   const [tasks, setTasks] = useState<Task[]>([]);
   const [subjectsHistory, setSubjectsHistory] = useState<string[]>([]);
+  const [timerSettings, setTimerSettings] = useState<{studySecs: number, restSecs: number}>({ studySecs: 25 * 60, restSecs: 5 * 60 });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -67,8 +68,12 @@ export function useFirebaseSync(isDemoLoggedIn: boolean) {
     // Listen to preferences
     const prefsPath = `users/${user.uid}`;
     const unsubPrefs = onSnapshot(doc(db, prefsPath), (docSnap) => {
-        if (docSnap.exists() && docSnap.data().subjectsHistory) {
-            setSubjectsHistory(docSnap.data().subjectsHistory);
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.subjectsHistory) setSubjectsHistory(data.subjectsHistory);
+            if (data.studySecs !== undefined && data.restSecs !== undefined) {
+                setTimerSettings({ studySecs: data.studySecs, restSecs: data.restSecs });
+            }
         } else {
             setSubjectsHistory([]);
         }
@@ -94,12 +99,15 @@ export function useFirebaseSync(isDemoLoggedIn: boolean) {
       userId: user.uid,
     } as Task; // Adding userId for rules
     
+    // Remove undefined values to prevent FirebaseError
+    const cleanTask = Object.fromEntries(Object.entries(newTask).filter(([_, v]) => v !== undefined)) as Task;
+
     // Optimistic update
-    setTasks(prev => [...prev, newTask]);
+    setTasks(prev => [...prev, cleanTask]);
     
     const taskPath = `users/${user.uid}/tasks`;
     try {
-        await setDoc(doc(db, taskPath, newTask.id), newTask);
+        await setDoc(doc(db, taskPath, cleanTask.id), cleanTask);
     } catch (e) {
         handleFirestoreError(e, OperationType.CREATE, taskPath);
     }
@@ -142,5 +150,16 @@ export function useFirebaseSync(isDemoLoggedIn: boolean) {
       }
   };
 
-  return { user, loading, tasks, subjectsHistory, addTask, updateTaskStatus, deleteTask, updateSubjectsHistory };
+  const updateTimerSettings = async (studySecs: number, restSecs: number) => {
+      if (!user) return;
+      setTimerSettings({ studySecs, restSecs });
+      const prefsPath = `users/${user.uid}`;
+      try {
+          await setDoc(doc(db, prefsPath), { studySecs, restSecs }, { merge: true });
+      } catch (e) {
+          handleFirestoreError(e, OperationType.UPDATE, prefsPath);
+      }
+  };
+
+  return { user, loading, tasks, subjectsHistory, timerSettings, addTask, updateTaskStatus, deleteTask, updateSubjectsHistory, updateTimerSettings };
 }

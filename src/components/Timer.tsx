@@ -1,18 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, RotateCcw, Brain, Coffee } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { useLocalStorage } from '../hooks/useLocalStorage';
 
 type TimerMode = 'study' | 'rest';
 
-export function Timer() {
-  const [studySecs, setStudySecs] = useLocalStorage('pomodoro_study_v2', 25 * 60);
-  const [restSecs, setRestSecs] = useLocalStorage('pomodoro_rest_v2', 5 * 60);
-  
+interface TimerProps {
+  studySecs: number;
+  restSecs: number;
+  onUpdateSettings: (studySecs: number, restSecs: number) => void;
+}
+
+export function Timer({ studySecs, restSecs, onUpdateSettings }: TimerProps) {
   const [mode, setMode] = useState<TimerMode>('study');
   const [timeLeft, setTimeLeft] = useState(studySecs);
   const [isRunning, setIsRunning] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+
+  // Sync timeLeft when props change (e.g. from another device)
+  useEffect(() => {
+    if (!isRunning && !showSettings) {
+      setTimeLeft(mode === 'study' ? studySecs : restSecs);
+    }
+  }, [studySecs, restSecs, mode, isRunning, showSettings]);
 
   // Settings values (temporary while editing)
   const [editMin, setEditMin] = useState(Math.floor((mode === 'study' ? studySecs : restSecs) / 60));
@@ -113,10 +122,10 @@ export function Timer() {
   const saveSettings = () => {
     const totalSecs = Math.max(1, editMin * 60 + editSec);
     if (mode === 'study') {
-      setStudySecs(totalSecs);
+      onUpdateSettings(totalSecs, restSecs);
       setTimeLeft(totalSecs);
     } else {
-      setRestSecs(totalSecs);
+      onUpdateSettings(studySecs, totalSecs);
       setTimeLeft(totalSecs);
     }
     setShowSettings(false);

@@ -16,7 +16,7 @@ import { cn } from './lib/utils';
 
 export default function App() {
   const [isDemoLoggedIn, setIsDemoLoggedIn] = useLocalStorage('demo_logged_in', false);
-  const { user, loading, tasks, subjectsHistory, addTask, updateTaskStatus, deleteTask, updateSubjectsHistory } = useFirebaseSync(isDemoLoggedIn);
+  const { user, loading, tasks, subjectsHistory, timerSettings, addTask, updateTaskStatus, deleteTask, updateSubjectsHistory, updateTimerSettings } = useFirebaseSync(isDemoLoggedIn);
   
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
@@ -260,7 +260,7 @@ export default function App() {
         "xl:w-96 p-4 shrink-0 flex flex-col bg-zinc-800/50 z-10",
         mobileTab === 'timer' ? "flex h-full flex-1" : "hidden xl:flex xl:h-full"
       )}>
-        <Timer />
+        <Timer studySecs={timerSettings.studySecs} restSecs={timerSettings.restSecs} onUpdateSettings={updateTimerSettings} />
       </aside>
 
       {/* Mobile Bottom Navigation */}

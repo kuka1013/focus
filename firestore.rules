@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function existing() {
+      return resource.data;
+    }
+    
+    function incoming() {
+      return request.resource.data;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    
+    function isValidTask(data, userId) {
+      return data.keys().hasAll(['subject', 'status', 'createdAt', 'userId']) &&
+             data.userId == userId &&
+             data.subject is string && data.subject.size() <= 200 &&
+             (!('type' in data) || (data.type is string && data.type.size() <= 100)) &&
+             (!('topic' in data) || (data.topic is string && data.topic.size() <= 500)) &&
+             (!('deadline' in data) || (data.deadline is string && data.deadline.size() <= 20)) &&
+             (!('link' in data) || (data.link is string && data.link.size() <= 1000)) &&
+             data.status in ['not_started', 'in_progress', 'ready', 'closed'] &&
+             data.createdAt is number;
+    }
+    
+    function isValidPrefs(data) {
+      return (!('subjectsHistory' in data) || (data.subjectsHistory is list && data.subjectsHistory.size() <= 50));
+    }
+    
+    match /users/{userId} {
+      allow read: if isOwner(userId) && isValidId(userId);
+      allow create: if isOwner(userId) && isValidId(userId) && isValidPrefs(incoming());
+      allow update: if isOwner(userId) && isValidId(userId) && isValidPrefs(incoming());
+      
+      match /tasks/{taskId} {
+        allow read: if isOwner(userId) && isValidId(userId) && isValidId(taskId);
+        allow create: if isOwner(userId) && isValidId(userId) && isValidId(taskId) && isValidTask(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(userId) && isValidId(taskId) && isValidTask(incoming(), userId) &&
+                      incoming().userId == existing().userId &&
+                      incoming().createdAt == existing().createdAt;
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(taskId);
+      }
+    }
+  }
+}

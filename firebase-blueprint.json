@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "UserPreferences": {
+      "title": "User Preferences",
+      "description": "User specific preferences and history",
+      "type": "object",
+      "properties": {
+        "subjectsHistory": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of recently used subjects"
+        }
+      }
+    },
+    "Task": {
+      "title": "Task",
+      "description": "User task",
+      "type": "object",
+      "properties": {
+        "subject": { "type": "string" },
+        "type": { "type": "string" },
+        "topic": { "type": "string" },
+        "deadline": { "type": "string" },
+        "link": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "userId": { "type": "string" }
+      },
+      "required": ["subject", "status", "createdAt", "userId"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/UserPreferences" },
+      "description": "Stores user preferences and history."
+    },
+    "users/{userId}/tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/Task" },
+      "description": "Tasks created by the user."
+    }
+  }
+}

@@ -10,4 +10,5 @@ export interface Task {
   link?: string;
   status: TaskStatus;
   createdAt: number;
+  userId?: string;
 }
